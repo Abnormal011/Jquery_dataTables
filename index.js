@@ -41,7 +41,7 @@ $(document).ready(function () {
       const ajaxOptions = searchValue === ""
         ? {
             url:
-              "http://dummyjson.com/users?limit=" +
+              "https://dummyjson.com/users?limit=" +
               data.length +
               "&skip=" +
               data.start +
@@ -52,7 +52,7 @@ $(document).ready(function () {
             method: "GET",
           }
         : {
-            url: "http://dummyjson.com/users/search?q=" + searchValue,
+            url: "https://dummyjson.com/users/search?q=" + searchValue,
             method: "GET",
           };
 
