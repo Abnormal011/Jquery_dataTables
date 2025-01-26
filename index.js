@@ -11,8 +11,22 @@ $(document).ready(function () {
     serverSide: true,
     processing: true,
     ajax: function (data, callback, settings) {
+      if (!navigator.onLine) {
+        Swal.fire({
+          icon: "error",
+          title: "No Internet Connection",
+          text: "Please turn on your internet and try again.",
+        });
+        callback({
+          draw: data.draw,
+          recordsTotal: 0,
+          recordsFiltered: 0,
+          data: [],
+        });
+        return;
+      }
+
       const searchValue = data.search.value;
-      console.log(searchValue);
       const sortColumnIndex = data.order[0].column;
       const sortDirection = data.order[0].dir;
       const sortColumnName = data.columns[sortColumnIndex].data;
@@ -24,32 +38,35 @@ $(document).ready(function () {
         return 0;
       };
 
-      if (searchValue == "") {
-        $.ajax({
-          url:
-            "http://dummyjson.com/users?limit=" +
-            data.length +
-            "&skip=" +
-            data.start +
-            "&sortBy=" +
-            sortColumnName +
-            "&order=" +
-            sortDirection,
-          method: "GET",
-          success: function (response) {
+      const ajaxOptions = searchValue === ""
+        ? {
+            url:
+              "http://dummyjson.com/users?limit=" +
+              data.length +
+              "&skip=" +
+              data.start +
+              "&sortBy=" +
+              sortColumnName +
+              "&order=" +
+              sortDirection,
+            method: "GET",
+          }
+        : {
+            url: "http://dummyjson.com/users/search?q=" + searchValue,
+            method: "GET",
+          };
+
+      $.ajax({
+        ...ajaxOptions,
+        success: function (response) {
+          if (searchValue === "") {
             callback({
               draw: data.draw,
               recordsTotal: response.total,
               recordsFiltered: response.total,
               data: response.users,
             });
-          },
-        });
-      } else {
-        $.ajax({
-          url: "http://dummyjson.com/users/search?q=" + searchValue,
-          method: "GET",
-          success: function (response) {
+          } else {
             const filteredData = response.users
               .sort(compare)
               .slice(data.start, data.start + data.length);
@@ -59,9 +76,22 @@ $(document).ready(function () {
               recordsFiltered: response.total,
               data: filteredData,
             });
-          },
-        });
-      }
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Please try again later.",
+          });
+          callback({
+            draw: data.draw,
+            recordsTotal: 0,
+            recordsFiltered: 0,
+            data: [],
+          });
+        },
+      });
     },
     columns: [
       { data: "id" },
@@ -118,7 +148,7 @@ $(document).ready(function () {
         data: null,
         render: function (data, type, row) {
           return (
-            '<button class="  viewBankBtn" data-id="' +
+            '<button class="viewBankBtn" data-id="' +
             row.id +
             '">View Bank Details</button>'
           );
@@ -164,15 +194,19 @@ $(document).ready(function () {
     }
   });
 
-  $(document).on("click",".bank-details div",function () {
+  $(document).on("click", ".bank-details div", function () {
     var copyTxt = $(this).text();
     navigator.clipboard.writeText(copyTxt);
     Swal.fire({
-        position: "center",
-        icon: "success",
-        title: "Copied To Clipboard",
-        showConfirmButton: false,
-        timer: 1000
-      });
+      position: "center",
+      icon: "success",
+      title: "Copied To Clipboard",
+      showConfirmButton: false,
+      timer: 1000,
+    });
+  });
+  
+  window.addEventListener("online", function () {
+    table.ajax.reload(null, false);
   });
 });
