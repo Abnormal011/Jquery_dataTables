@@ -8,6 +8,7 @@ $(document).ready(function () {
       { targets: 8, searchable: false, sortable: false },
     ],
     scrollY: 500,
+    scrollX: true,
     serverSide: true,
     processing: true,
     ajax: function (data, callback, settings) {
@@ -159,30 +160,31 @@ $(document).ready(function () {
 
   $("#example tbody").on("click", ".viewBankBtn", function () {
     var userId = $(this).data("id");
-
+  
     var userData = table.row($(this).closest("tr")).data();
-
+    console.log(userData);
+  
     var bankData = userData.bank;
-    $(".bank-details").html(
-      "<div><span>Card Number:</span> " +
-        bankData.cardNumber +
-        "</div>" +
-        "<div><span>Card Type:</span> " +
-        bankData.cardType +
-        "</div>" +
-        "<div><span>Card Expire:</span> " +
-        bankData.cardExpire +
-        "</div>" +
-        "<div><span>Currency:</span> " +
-        bankData.currency +
-        "</div>" +
-        "<div><span>IBAN:</span> " +
-        bankData.iban +
-        "</div>"
+  
+    // Update user info with image, first name, and last name
+    $(".user-info").html(
+      `<div style="text-align: center;">
+        <img src="${userData.image}" alt="User Image" style="width:100px;height:100px;border-radius:50%;margin-bottom:10px;"/>
+        <div style="font-weight: bold; font-size: 16px;"><h2>${userData.firstName} ${userData.lastName}</h2></div>
+      </div>`
     );
-
+  
+    // Update bank details
+    $(".bank-details").html(
+      `<div><span>Card Number:</span> ${bankData.cardNumber}</div>
+       <div><span>Card Type:</span> ${bankData.cardType}</div>
+       <div><span>Card Expire:</span> ${bankData.cardExpire}</div>
+       <div><span>Currency:</span> ${bankData.currency}</div>
+       <div><span>IBAN:</span> ${bankData.iban}</div>`
+    );
+  
     $("#bankModal").fadeIn();
-  });
+  });  
 
   $(".close").click(function () {
     $("#bankModal").fadeOut();
